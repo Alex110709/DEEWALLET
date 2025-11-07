@@ -9,11 +9,11 @@ import { ChainType, Token, Transaction, SendTransactionParams } from '../types/w
 
 export class TronChainAdapter extends BaseChainAdapter {
   chainType = ChainType.TRX;
-  private tronWeb: typeof TronWeb;
+  private tronWeb: any; // TronWeb types are not well defined
 
   constructor(rpcUrl: string) {
     super(rpcUrl);
-    this.tronWeb = new TronWeb({
+    this.tronWeb = new (TronWeb as any)({
       fullHost: rpcUrl
     });
   }

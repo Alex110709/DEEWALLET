@@ -1,0 +1,15 @@
+{
+  "name": "deewallet",
+  "version": "1.0.0",
+  "description": "DEE WALLET - Multi-chain cryptocurrency wallet (BTC, ETH, TRX, SOL)",
+  "dependencies": [
+    "qt6-base",
+    "qt6-tools",
+    "openssl",
+    {
+      "name": "qtbase",
+      "features": ["widgets", "network"]
+    }
+  ],
+  "builtin-baseline": "2024.11.16"
+}

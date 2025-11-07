@@ -1,0 +1,208 @@
+{
+  "mainnet": {
+    "BTC": [
+      {
+        "name": "Blockstream",
+        "url": "https://blockstream.info/api",
+        "priority": 1,
+        "rateLimit": 10
+      },
+      {
+        "name": "Blockchain.com",
+        "url": "https://blockchain.info",
+        "priority": 2,
+        "rateLimit": 10
+      },
+      {
+        "name": "Mempool.space",
+        "url": "https://mempool.space/api",
+        "priority": 3,
+        "rateLimit": 10
+      },
+      {
+        "name": "BlockCypher",
+        "url": "https://api.blockcypher.com/v1/btc/main",
+        "priority": 4,
+        "rateLimit": 5
+      }
+    ],
+    "ETH": [
+      {
+        "name": "Cloudflare",
+        "url": "https://cloudflare-eth.com",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Ankr",
+        "url": "https://rpc.ankr.com/eth",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "1RPC",
+        "url": "https://1rpc.io/eth",
+        "priority": 3,
+        "rateLimit": 50
+      },
+      {
+        "name": "LlamaNodes",
+        "url": "https://eth.llamarpc.com",
+        "priority": 4,
+        "rateLimit": 30
+      },
+      {
+        "name": "BlastAPI",
+        "url": "https://eth-mainnet.public.blastapi.io",
+        "priority": 5,
+        "rateLimit": 50
+      },
+      {
+        "name": "Infura (Public)",
+        "url": "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+        "priority": 6,
+        "rateLimit": 10
+      },
+      {
+        "name": "PublicNode",
+        "url": "https://ethereum.publicnode.com",
+        "priority": 7,
+        "rateLimit": 100
+      }
+    ],
+    "SOL": [
+      {
+        "name": "Solana Mainnet (Official)",
+        "url": "https://api.mainnet-beta.solana.com",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Ankr",
+        "url": "https://rpc.ankr.com/solana",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "Chainstack",
+        "url": "https://solana-mainnet.core.chainstack.com",
+        "priority": 3,
+        "rateLimit": 30
+      },
+      {
+        "name": "GetBlock",
+        "url": "https://sol.getblock.io/mainnet",
+        "priority": 4,
+        "rateLimit": 40
+      },
+      {
+        "name": "Serum",
+        "url": "https://solana-api.projectserum.com",
+        "priority": 5,
+        "rateLimit": 50
+      },
+      {
+        "name": "QuickNode (Public)",
+        "url": "https://solana-mainnet.rpc.extrnode.com",
+        "priority": 6,
+        "rateLimit": 20
+      }
+    ],
+    "TRX": [
+      {
+        "name": "TronGrid (Official)",
+        "url": "https://api.trongrid.io",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "TronStack",
+        "url": "https://api.tronstack.io",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "Ankr",
+        "url": "https://rpc.ankr.com/tron",
+        "priority": 3,
+        "rateLimit": 50
+      },
+      {
+        "name": "GetBlock",
+        "url": "https://trx.getblock.io/mainnet",
+        "priority": 4,
+        "rateLimit": 40
+      },
+      {
+        "name": "NileGrid",
+        "url": "https://api.shasta.trongrid.io",
+        "priority": 5,
+        "rateLimit": 30
+      }
+    ]
+  },
+  "testnet": {
+    "BTC": [
+      {
+        "name": "Blockstream Testnet",
+        "url": "https://blockstream.info/testnet/api",
+        "priority": 1,
+        "rateLimit": 10
+      },
+      {
+        "name": "Mempool.space Testnet",
+        "url": "https://mempool.space/testnet/api",
+        "priority": 2,
+        "rateLimit": 10
+      }
+    ],
+    "ETH": [
+      {
+        "name": "Sepolia (Infura)",
+        "url": "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+        "priority": 1,
+        "rateLimit": 10
+      },
+      {
+        "name": "Sepolia (Ankr)",
+        "url": "https://rpc.ankr.com/eth_sepolia",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "Goerli (Ankr)",
+        "url": "https://rpc.ankr.com/eth_goerli",
+        "priority": 3,
+        "rateLimit": 50
+      }
+    ],
+    "SOL": [
+      {
+        "name": "Solana Devnet",
+        "url": "https://api.devnet.solana.com",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Solana Testnet",
+        "url": "https://api.testnet.solana.com",
+        "priority": 2,
+        "rateLimit": 100
+      }
+    ],
+    "TRX": [
+      {
+        "name": "Shasta Testnet",
+        "url": "https://api.shasta.trongrid.io",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Nile Testnet",
+        "url": "https://nile.trongrid.io",
+        "priority": 2,
+        "rateLimit": 100
+      }
+    ]
+  }
+}

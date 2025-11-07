@@ -1,0 +1,106 @@
+{
+  "mainnet": {
+    "BTC": [
+      {
+        "name": "Blockstream",
+        "url": "https://blockstream.info/api",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Blockchain.com",
+        "url": "https://blockchain.info",
+        "priority": 2,
+        "rateLimit": 50
+      }
+    ],
+    "ETH": [
+      {
+        "name": "Cloudflare",
+        "url": "https://cloudflare-eth.com",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Ankr",
+        "url": "https://rpc.ankr.com/eth",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "Public Node",
+        "url": "https://ethereum.publicnode.com",
+        "priority": 3,
+        "rateLimit": 30
+      }
+    ],
+    "TRX": [
+      {
+        "name": "TronGrid",
+        "url": "https://api.trongrid.io",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "TronStack",
+        "url": "https://api.tronstack.io",
+        "priority": 2,
+        "rateLimit": 50
+      }
+    ],
+    "SOL": [
+      {
+        "name": "Mainnet Beta",
+        "url": "https://api.mainnet-beta.solana.com",
+        "priority": 1,
+        "rateLimit": 100
+      },
+      {
+        "name": "Project Serum",
+        "url": "https://solana-api.projectserum.com",
+        "priority": 2,
+        "rateLimit": 50
+      },
+      {
+        "name": "Ankr",
+        "url": "https://rpc.ankr.com/solana",
+        "priority": 3,
+        "rateLimit": 30
+      }
+    ]
+  },
+  "testnet": {
+    "BTC": [
+      {
+        "name": "Blockstream Testnet",
+        "url": "https://blockstream.info/testnet/api",
+        "priority": 1,
+        "rateLimit": 100
+      }
+    ],
+    "ETH": [
+      {
+        "name": "Sepolia",
+        "url": "https://rpc.sepolia.org",
+        "priority": 1,
+        "rateLimit": 100
+      }
+    ],
+    "TRX": [
+      {
+        "name": "TronGrid Nile",
+        "url": "https://nile.trongrid.io",
+        "priority": 1,
+        "rateLimit": 100
+      }
+    ],
+    "SOL": [
+      {
+        "name": "Devnet",
+        "url": "https://api.devnet.solana.com",
+        "priority": 1,
+        "rateLimit": 100
+      }
+    ]
+  }
+}

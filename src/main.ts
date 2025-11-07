@@ -11,18 +11,17 @@ import { EthereumChainAdapter } from './chains/ethereum.chain';
 import { SolanaChainAdapter } from './chains/solana.chain';
 import { TronChainAdapter } from './chains/tron.chain';
 import { ChainType, NetworkType, WalletConfig } from './types/wallet.types';
+import { RPCManager } from './utils/rpc-manager';
+import { KeyfileScanner } from './utils/keyfile-scanner';
 
 let mainWindow: BrowserWindow | null = null;
 let walletCore: WalletCore | null = null;
+let rpcManager: RPCManager | null = null;
+let keyfileScanner: KeyfileScanner | null = null;
 
 const defaultConfig: WalletConfig = {
   network: NetworkType.MAINNET,
-  rpcEndpoints: {
-    BTC: 'https://blockstream.info/api',
-    ETH: 'https://eth-mainnet.g.alchemy.com/v2/demo',
-    SOL: 'https://api.mainnet-beta.solana.com',
-    TRX: 'https://api.trongrid.io'
-  },
+  rpcEndpoints: {},
   derivationPaths: {}
 };
 
@@ -32,6 +31,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
+    title: 'DEE WALLET',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -57,6 +57,15 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Initialize RPC Manager
+  rpcManager = new RPCManager(defaultConfig.network);
+  console.log('RPC Manager initialized with endpoints:', rpcManager.getStats());
+
+  // Initialize Keyfile Scanner (scan in app directory)
+  const appPath = app.getAppPath();
+  keyfileScanner = new KeyfileScanner(appPath);
+  console.log('Keyfile Scanner initialized. Scan directory:', keyfileScanner.getScanDirectory());
+
   createWindow();
 
   app.on('activate', () => {
@@ -67,6 +76,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  if (rpcManager) {
+    rpcManager.stopHealthCheck();
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -229,18 +241,119 @@ ipcMain.handle('chain:get-transaction-history', async (_, chainType: ChainType, 
 });
 
 function getChainAdapter(chainType: ChainType) {
-  const rpcUrl = defaultConfig.rpcEndpoints[chainType];
+  if (!rpcManager) {
+    throw new Error('RPC Manager not initialized');
+  }
 
-  switch (chainType) {
-    case ChainType.BTC:
-      return new BitcoinChainAdapter(rpcUrl, defaultConfig.network === NetworkType.TESTNET);
-    case ChainType.ETH:
-      return new EthereumChainAdapter(rpcUrl);
-    case ChainType.SOL:
-      return new SolanaChainAdapter(rpcUrl);
-    case ChainType.TRX:
-      return new TronChainAdapter(rpcUrl);
-    default:
-      throw new Error(`Unsupported chain type: ${chainType}`);
+  const rpcUrl = rpcManager.getEndpoint(chainType);
+
+  try {
+    switch (chainType) {
+      case ChainType.BTC:
+        return new BitcoinChainAdapter(rpcUrl, defaultConfig.network === NetworkType.TESTNET);
+      case ChainType.ETH:
+        return new EthereumChainAdapter(rpcUrl);
+      case ChainType.SOL:
+        return new SolanaChainAdapter(rpcUrl);
+      case ChainType.TRX:
+        return new TronChainAdapter(rpcUrl);
+      default:
+        throw new Error(`Unsupported chain type: ${chainType}`);
+    }
+  } catch (error) {
+    // Report failure to RPC manager for automatic failover
+    rpcManager.reportFailure(chainType, error as Error);
+    throw error;
   }
 }
+
+// Add IPC handler for RPC stats
+ipcMain.handle('rpc:get-stats', async () => {
+  try {
+    if (!rpcManager) {
+      throw new Error('RPC Manager not initialized');
+    }
+
+    const stats = rpcManager.getStats();
+    const statsObject: any = {};
+
+    stats.forEach((value, key) => {
+      statsObject[key] = value;
+    });
+
+    return { success: true, stats: statsObject };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Add IPC handler for switching RPC endpoint
+ipcMain.handle('rpc:set-endpoint', async (_, chainType: ChainType, endpointUrl: string) => {
+  try {
+    if (!rpcManager) {
+      throw new Error('RPC Manager not initialized');
+    }
+
+    const success = rpcManager.setEndpoint(chainType, endpointUrl);
+    return { success };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Add IPC handler for getting available endpoints
+ipcMain.handle('rpc:get-endpoints', async (_, chainType: ChainType) => {
+  try {
+    if (!rpcManager) {
+      throw new Error('RPC Manager not initialized');
+    }
+
+    const endpoints = rpcManager.getAvailableEndpoints(chainType);
+    return { success: true, endpoints };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Add IPC handler for scanning keyfiles
+ipcMain.handle('keyfile:scan', async () => {
+  try {
+    if (!keyfileScanner) {
+      throw new Error('Keyfile Scanner not initialized');
+    }
+
+    const keyfiles = await keyfileScanner.scanForKeyfiles();
+    return { success: true, keyfiles };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Add IPC handler for getting keyfile details
+ipcMain.handle('keyfile:get-details', async (_, filepath: string) => {
+  try {
+    if (!keyfileScanner) {
+      throw new Error('Keyfile Scanner not initialized');
+    }
+
+    const details = await keyfileScanner.getKeyfileDetails(filepath);
+    return { success: true, details };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});
+
+// Add IPC handler for importing keyfile from specific path
+ipcMain.handle('keyfile:import-from-path', async (_, filepath: string, password: string) => {
+  try {
+    const keyfileContent = await fs.readFile(filepath, 'utf-8');
+    const keyfileData = JSON.parse(keyfileContent);
+
+    walletCore = new WalletCore(defaultConfig);
+    await walletCore.importFromKeyfile(keyfileData, password);
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+});

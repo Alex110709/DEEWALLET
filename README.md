@@ -20,6 +20,8 @@
 - ✅ **HD Wallet**: BIP39/BIP44 standard implementation
 - ✅ **Offline Signing**: Sign transactions offline
 - ✅ **No Custody**: Full control of your private keys
+- ✅ **Multiple RPC Endpoints**: 20+ public RPCs with auto-failover
+- ✅ **Smart RPC Management**: Automatic health monitoring and switching
 
 ## 🚀 Quick Start
 
@@ -39,9 +41,12 @@ npm run package
 
 ## 📖 Documentation
 
+- [Quick Start](docs/QUICK-START.md) - Get started in 5 minutes
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [Usage Guide](docs/USAGE.md) - How to use DEEWALLET
 - [API Documentation](docs/API.md) - Developer API reference
+- [RPC Configuration](docs/RPC-CONFIGURATION.md) - RPC setup and configuration
+- [Installation](docs/INSTALLATION.md) - Installation guide
 
 ## 🔐 Security
 

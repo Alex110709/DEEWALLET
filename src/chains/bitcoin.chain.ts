@@ -3,9 +3,13 @@
  */
 
 import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
+import { ECPairFactory } from 'ecpair';
 import axios from 'axios';
 import { BaseChainAdapter } from './base.chain';
 import { ChainType, Token, Transaction, SendTransactionParams } from '../types/wallet.types';
+
+const ECPair = ECPairFactory(ecc);
 
 export class BitcoinChainAdapter extends BaseChainAdapter {
   chainType = ChainType.BTC;
@@ -64,13 +68,13 @@ export class BitcoinChainAdapter extends BaseChainAdapter {
    */
   async sendTransaction(params: SendTransactionParams, privateKey: string): Promise<Transaction> {
     try {
-      const keyPair = bitcoin.ECPair.fromPrivateKey(
+      const keyPair = ECPair.fromPrivateKey(
         Buffer.from(privateKey, 'hex'),
         { network: this.network }
       );
 
       const { address: fromAddress } = bitcoin.payments.p2wpkh({
-        pubkey: keyPair.publicKey,
+        pubkey: Buffer.from(keyPair.publicKey),
         network: this.network
       });
 
@@ -136,7 +140,7 @@ export class BitcoinChainAdapter extends BaseChainAdapter {
       }
 
       // Sign all inputs
-      psbt.signAllInputs(keyPair);
+      psbt.signAllInputs(keyPair as any);
       psbt.finalizeAllInputs();
 
       // Broadcast transaction

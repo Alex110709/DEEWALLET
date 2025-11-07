@@ -1,5 +1,5 @@
 /**
- * DEEWALLET - Electron Preload Script
+ * DEE WALLET - Electron Preload Script
  * Exposes safe IPC methods to renderer process
  */
 
@@ -16,7 +16,13 @@ contextBridge.exposeInMainWorld('electron', {
       'chain:get-balance',
       'chain:get-tokens',
       'chain:send-transaction',
-      'chain:get-transaction-history'
+      'chain:get-transaction-history',
+      'keyfile:scan',
+      'keyfile:get-details',
+      'keyfile:import-from-path',
+      'rpc:get-stats',
+      'rpc:set-endpoint',
+      'rpc:get-endpoints'
     ];
 
     if (validChannels.includes(channel)) {

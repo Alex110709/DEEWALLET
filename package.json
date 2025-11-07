@@ -1,7 +1,7 @@
 {
-  "name": "deewallet",
+  "name": "dee-wallet",
   "version": "1.0.0",
-  "description": "Multi-chain cryptocurrency wallet supporting BTC, ETH, TRX, SOL with ERC-20 and SPL tokens",
+  "description": "DEE WALLET - Multi-chain cryptocurrency wallet supporting BTC, ETH, TRX, SOL with ERC-20 and SPL tokens",
   "main": "dist/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
@@ -17,31 +17,40 @@
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["cryptocurrency", "wallet", "bitcoin", "ethereum", "tron", "solana", "multi-chain"],
+  "keywords": [
+    "cryptocurrency",
+    "wallet",
+    "bitcoin",
+    "ethereum",
+    "tron",
+    "solana",
+    "multi-chain"
+  ],
   "author": "DEEWALLET Team",
   "license": "MIT",
   "dependencies": {
-    "@solana/web3.js": "^1.95.0",
     "@solana/spl-token": "^0.4.8",
-    "bitcoinjs-lib": "^6.1.6",
-    "tiny-secp256k1": "^2.2.3",
-    "ethers": "^6.13.0",
-    "tronweb": "^6.0.0",
-    "bip39": "^3.1.0",
-    "bip32": "^4.0.0",
-    "crypto-js": "^4.2.0",
+    "@solana/web3.js": "^1.95.0",
     "axios": "^1.7.0",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "bitcoinjs-lib": "^6.1.6",
+    "crypto-js": "^4.2.0",
+    "ecpair": "^3.0.0",
+    "ethers": "^6.13.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "tiny-secp256k1": "^2.2.3",
+    "tronweb": "^6.0.0",
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@types/bip32": "^2.0.0",
+    "@types/bip39": "^3.0.0",
+    "@types/crypto-js": "^4.2.0",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@types/crypto-js": "^4.2.0",
-    "@types/bip39": "^3.0.0",
-    "@types/bip32": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "@vitejs/plugin-react": "^4.3.0",
@@ -56,7 +65,7 @@
   },
   "build": {
     "appId": "com.deewallet.app",
-    "productName": "DEEWALLET",
+    "productName": "DEE WALLET",
     "directories": {
       "output": "release"
     },
@@ -65,11 +74,17 @@
       "package.json"
     ],
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.finance"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "assets/icon.ico"
     }
   }
