@@ -10,6 +10,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QUrl>
+#include <QUrl>
 
 // Popular token lists
 QVector<Token> TokenDetector::popularERC20Tokens = {
@@ -42,7 +44,7 @@ QVector<Token> TokenDetector::detectERC20Tokens(const QString &address)
 
         // Make eth_call to get balance
         QNetworkAccessManager manager;
-        QNetworkRequest request("https://eth.llamarpc.com");
+        QNetworkRequest request(QUrl("https://eth.llamarpc.com"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
         QJsonObject rpcRequest;

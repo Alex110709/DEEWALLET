@@ -14,7 +14,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 # Find Qt6
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Concurrent)
 
 # Find OpenSSL
 find_package(OpenSSL REQUIRED)
@@ -42,6 +42,8 @@ set(SOURCES
     src/ui/CreateWalletDialog.cpp
     src/ui/ImportWalletDialog.cpp
     src/ui/WalletDetailScreen.cpp
+    src/ui/ChainDetailScreen.cpp
+    src/ui/LoadingScreen.cpp
     src/ui/SendTransactionDialog.cpp
     src/ui/QRCodeDialog.cpp
     src/ui/AddressBookDialog.cpp
@@ -69,6 +71,8 @@ set(HEADERS
     src/ui/CreateWalletDialog.h
     src/ui/ImportWalletDialog.h
     src/ui/WalletDetailScreen.h
+    src/ui/ChainDetailScreen.h
+    src/ui/LoadingScreen.h
     src/ui/SendTransactionDialog.h
     src/ui/QRCodeDialog.h
     src/ui/AddressBookDialog.h
@@ -82,6 +86,7 @@ target_link_libraries(deewallet PRIVATE
     Qt6::Core
     Qt6::Widgets
     Qt6::Network
+    Qt6::Concurrent
     OpenSSL::SSL
     OpenSSL::Crypto
 )

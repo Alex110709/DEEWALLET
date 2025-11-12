@@ -5,6 +5,7 @@
 #include "WelcomeScreen.h"
 #include "CreateWalletDialog.h"
 #include "ImportWalletDialog.h"
+#include "../core/KeyfileManager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QDir>
@@ -13,14 +14,137 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QApplication>
+#include <QStandardPaths>
+#include <QScrollArea>
+#include <QPropertyAnimation>
+#include <QGraphicsDropShadowEffect>
+#include <QInputDialog>
+#include <QMessageBox>
 
+// KeyfileCard Implementation
+KeyfileCard::KeyfileCard(const KeyfileInfo &info, QWidget *parent)
+    : QWidget(parent)
+    , keyfileInfo(info)
+    , isHovered(false)
+{
+    auto *layout = new QHBoxLayout(this);
+    layout->setContentsMargins(24, 20, 24, 20);
+    layout->setSpacing(20);
+    
+    // Name - cleaner typography
+    nameLabel = new QLabel(info.filename, this);
+    nameLabel->setStyleSheet(R"(
+        QLabel {
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: #E2E8F0;
+            border: none;
+        }
+    )");
+    layout->addWidget(nameLabel);
+    
+    layout->addStretch();
+    
+    // Date - subtle styling
+    QDateTime dt = QDateTime::fromMSecsSinceEpoch(info.updatedAt);
+    QString dateStr = dt.toString("yyyy-MM-dd HH:mm");
+    dateLabel = new QLabel(dateStr, this);
+    dateLabel->setStyleSheet(R"(
+        QLabel {
+            background: transparent;
+            font-size: 12px;
+            color: #64748B;
+            border: none;
+        }
+    )");
+    layout->addWidget(dateLabel);
+    
+    setMinimumHeight(64);
+    setMaximumHeight(64);
+    setCursor(Qt::PointingHandCursor);
+    
+    updateStyle();
+}
+
+void KeyfileCard::enterEvent(QEnterEvent *event)
+{
+    Q_UNUSED(event);
+    isHovered = true;
+    
+    // Animate height
+    QPropertyAnimation *animation = new QPropertyAnimation(this, "minimumHeight");
+    animation->setDuration(150);
+    animation->setStartValue(60);
+    animation->setEndValue(70);
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    
+    QPropertyAnimation *animation2 = new QPropertyAnimation(this, "maximumHeight");
+    animation2->setDuration(150);
+    animation2->setStartValue(60);
+    animation2->setEndValue(70);
+    animation2->start(QAbstractAnimation::DeleteWhenStopped);
+    
+    updateStyle();
+}
+
+void KeyfileCard::leaveEvent(QEvent *event)
+{
+    Q_UNUSED(event);
+    isHovered = false;
+    
+    // Animate height back
+    QPropertyAnimation *animation = new QPropertyAnimation(this, "minimumHeight");
+    animation->setDuration(150);
+    animation->setStartValue(70);
+    animation->setEndValue(60);
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
+    
+    QPropertyAnimation *animation2 = new QPropertyAnimation(this, "maximumHeight");
+    animation2->setDuration(150);
+    animation2->setStartValue(70);
+    animation2->setEndValue(60);
+    animation2->start(QAbstractAnimation::DeleteWhenStopped);
+    
+    updateStyle();
+}
+void KeyfileCard::mousePressEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+    emit clicked(keyfileInfo.filepath);
+}
+
+void KeyfileCard::updateStyle()
+{
+    if (isHovered) {
+        setStyleSheet(R"(
+            KeyfileCard {
+                background-color: #1E293B;
+                border: 1px solid #3B82F6;
+                border-radius: 10px;
+            }
+        )");
+    } else {
+        setStyleSheet(R"(
+            KeyfileCard {
+                background-color: #1E293B;
+                border: 1px solid #334155;
+                border-radius: 10px;
+            }
+        )");
+    }
+}
+
+// WelcomeScreen Implementation
 WelcomeScreen::WelcomeScreen(QWidget *parent)
     : QWidget(parent)
-    , keyfileList(new QListWidget(this))
-    , createButton(new QPushButton("Create Wallet", this))
-    , importButton(new QPushButton("Import Wallet from File", this))
+    , scrollArea(new QScrollArea(this))
+    , keyfileContainer(new QWidget(this))
+    , keyfileLayout(new QVBoxLayout(keyfileContainer))
+    , createButton(new QPushButton("새 지갑 만들기", this))
+    , importButton(new QPushButton("지갑 가져오기", this))
     , titleLabel(new QLabel("DEE WALLET", this))
-    , subtitleLabel(new QLabel("Multi-chain Cryptocurrency Wallet", this))
+    , subtitleLabel(new QLabel("다중 체인 암호화폐 지갑", this))
 {
     setupUI();
     refreshKeyfileList();
@@ -29,23 +153,28 @@ WelcomeScreen::WelcomeScreen(QWidget *parent)
 void WelcomeScreen::setupUI()
 {
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(40, 40, 40, 40);
-    mainLayout->setSpacing(20);
+    mainLayout->setContentsMargins(50, 40, 50, 40);
+    mainLayout->setSpacing(24);
 
-    // Title section
+    // Title section - cleaner design
     titleLabel->setStyleSheet(R"(
         QLabel {
+            background: transparent;
             font-size: 36px;
             font-weight: bold;
-            color: #ffffff;
+            color: #F1F5F9;
+            border: none;
         }
     )");
     titleLabel->setAlignment(Qt::AlignCenter);
 
     subtitleLabel->setStyleSheet(R"(
         QLabel {
-            font-size: 16px;
-            color: #999999;
+            background: transparent;
+            font-size: 15px;
+            color: #64748B;
+            font-weight: normal;
+            border: none;
         }
     )");
     subtitleLabel->setAlignment(Qt::AlignCenter);
@@ -54,43 +183,91 @@ void WelcomeScreen::setupUI()
     mainLayout->addWidget(subtitleLabel);
     mainLayout->addSpacing(20);
 
-    // Keyfile list section
-    auto *listLabel = new QLabel("Found Keyfiles:", this);
-    listLabel->setStyleSheet("font-size: 14px; color: #cccccc;");
-    mainLayout->addWidget(listLabel);
-
-    keyfileList->setStyleSheet(R"(
-        QListWidget {
-            background-color: #2a2a2a;
-            border: 2px solid #3a3a3a;
-            border-radius: 8px;
-            padding: 8px;
-        }
-        QListWidget::item {
-            padding: 12px;
-            border-radius: 6px;
-            margin: 4px 0;
-        }
-        QListWidget::item:hover {
-            background-color: #3a3a3a;
-        }
-        QListWidget::item:selected {
-            background-color: #0066ff;
+    // Keyfiles section header
+    auto *listLabel = new QLabel("저장된 지갑", this);
+    listLabel->setStyleSheet(R"(
+        QLabel {
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #94A3B8;
+            border: none;
         }
     )");
-    keyfileList->setMinimumHeight(200);
-    mainLayout->addWidget(keyfileList);
+    mainLayout->addWidget(listLabel);
 
-    connect(keyfileList, &QListWidget::itemDoubleClicked,
-            this, &WelcomeScreen::onKeyfileDoubleClicked);
+    // Scroll area for keyfile cards
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setWidget(keyfileContainer);
+    scrollArea->setStyleSheet(R"(
+        QScrollArea {
+            border: none;
+            background-color: transparent;
+        }
+        QScrollBar:vertical {
+            background: #1E293B;
+            width: 8px;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical {
+            background: #3B82F6;
+            border-radius: 4px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #2563EB;
+        }
+    )");
+    
+    // Set container background to transparent
+    keyfileContainer->setStyleSheet("QWidget { background-color: transparent; }");
+    
+    keyfileLayout->setSpacing(16);
+    keyfileLayout->setAlignment(Qt::AlignTop);
+    
+    mainLayout->addWidget(scrollArea, 1);
 
-    // Button section
+    // Button section - cleaner design
     auto *buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(16);
 
-    createButton->setMinimumHeight(50);
-    importButton->setMinimumHeight(50);
-    importButton->setObjectName("secondaryButton");
+    createButton->setMinimumHeight(48);
+    createButton->setCursor(Qt::PointingHandCursor);
+    createButton->setStyleSheet(R"(
+        QPushButton {
+            background-color: #3B82F6;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #2563EB;
+        }
+        QPushButton:pressed {
+            background-color: #1D4ED8;
+        }
+    )");
+    
+    importButton->setMinimumHeight(48);
+    importButton->setCursor(Qt::PointingHandCursor);
+    importButton->setStyleSheet(R"(
+        QPushButton {
+            background-color: #1E293B;
+            color: #94A3B8;
+            font-size: 15px;
+            font-weight: 600;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        QPushButton:hover {
+            background-color: #334155;
+            color: #CBD5E1;
+        }
+        QPushButton:pressed {
+            background-color: #475569;
+        }
+    )");
 
     buttonLayout->addWidget(createButton);
     buttonLayout->addWidget(importButton);
@@ -104,13 +281,17 @@ void WelcomeScreen::setupUI()
 QVector<KeyfileInfo> WelcomeScreen::scanKeyfiles()
 {
     QVector<KeyfileInfo> keyfiles;
-
-    // Scan application directory
-    QDir appDir(QApplication::applicationDirPath());
+    
+    // Scan the folder where deewallet.app is located (build folder)
+    QString appDir = QApplication::applicationDirPath();
+    QDir appDirObj(appDir);
+    appDirObj.cdUp(); // Contents
+    appDirObj.cdUp(); // deewallet.app
+    appDirObj.cdUp(); // build
+    QDir buildDir(appDirObj.absolutePath());
     QStringList filters;
     filters << "*.keyfile";
-
-    QFileInfoList fileList = appDir.entryInfoList(filters, QDir::Files);
+    QFileInfoList fileList = buildDir.entryInfoList(filters, QDir::Files);
 
     for (const QFileInfo &fileInfo : fileList) {
         KeyfileInfo info;
@@ -145,40 +326,39 @@ QVector<KeyfileInfo> WelcomeScreen::scanKeyfiles()
 
 void WelcomeScreen::refreshKeyfileList()
 {
-    keyfileList->clear();
+    // Clear existing cards
+    while (keyfileLayout->count() > 0) {
+        QLayoutItem *item = keyfileLayout->takeAt(0);
+        if (item->widget()) {
+            item->widget()->deleteLater();
+        }
+        delete item;
+    }
 
     QVector<KeyfileInfo> keyfiles = scanKeyfiles();
 
     if (keyfiles.isEmpty()) {
-        auto *item = new QListWidgetItem("No keyfiles found. Create a new wallet to get started.");
-        item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
-        keyfileList->addItem(item);
+        auto *emptyLabel = new QLabel("지갑이 없습니다. 새 지갑을 만들어보세요!", this);
+        emptyLabel->setStyleSheet(R"(
+            QLabel {
+                font-size: 16px;
+                color: #666666;
+                padding: 40px;
+            }
+        )");
+        emptyLabel->setAlignment(Qt::AlignCenter);
+        keyfileLayout->addWidget(emptyLabel);
         return;
     }
 
+    // Add cards as vertical list
     for (const KeyfileInfo &info : keyfiles) {
-        QString icon = info.isValid ? "🔐" : "⚠️";
-        QString text = QString("%1 %2\n   %3  •  %4")
-                          .arg(icon)
-                          .arg(info.filename)
-                          .arg(formatDate(info.updatedAt))
-                          .arg(formatFileSize(info.size));
-
-        auto *item = new QListWidgetItem(text);
-        item->setData(Qt::UserRole, info.filepath);
-        keyfileList->addItem(item);
+        auto *card = new KeyfileCard(info, this);
+        connect(card, &KeyfileCard::clicked, this, &WelcomeScreen::onKeyfileClicked);
+        keyfileLayout->addWidget(card);
     }
-}
-
-QString WelcomeScreen::formatFileSize(qint64 bytes)
-{
-    if (bytes < 1024) {
-        return QString("%1 B").arg(bytes);
-    } else if (bytes < 1024 * 1024) {
-        return QString("%1 KB").arg(bytes / 1024);
-    } else {
-        return QString("%1 MB").arg(bytes / (1024 * 1024));
-    }
+    
+    keyfileLayout->addStretch();
 }
 
 QString WelcomeScreen::formatDate(qint64 timestamp)
@@ -191,8 +371,9 @@ void WelcomeScreen::onCreateWallet()
 {
     CreateWalletDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        QString mnemonic = dialog.getMnemonic();
         refreshKeyfileList();
-        emit walletCreated(dialog.getMnemonic());
+        emit walletCreated(mnemonic);
     }
 }
 
@@ -200,16 +381,30 @@ void WelcomeScreen::onImportWallet()
 {
     ImportWalletDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        QString mnemonic = dialog.getMnemonic();
         refreshKeyfileList();
-        emit walletImported(dialog.getMnemonic());
+        emit walletImported(mnemonic);
     }
 }
 
-void WelcomeScreen::onKeyfileDoubleClicked(QListWidgetItem *item)
+void WelcomeScreen::onKeyfileClicked(const QString &filepath)
 {
-    QString filepath = item->data(Qt::UserRole).toString();
-    if (!filepath.isEmpty()) {
-        emit keyfileSelected(filepath);
-        // TODO: Open wallet with password prompt
+    showPasswordDialog(filepath);
+}
+
+void WelcomeScreen::showPasswordDialog(const QString &filepath)
+{
+    bool ok;
+    QString password = QInputDialog::getText(this, 
+        "지갑 열기",
+        "비밀번호를 입력하세요:",
+        QLineEdit::Password,
+        QString(), &ok);
+    
+    if (!ok || password.isEmpty()) {
+        return;
     }
+    
+    // Emit signal to show loading screen and decrypt in MainWindow
+    emit loadingStarted(filepath, password);
 }

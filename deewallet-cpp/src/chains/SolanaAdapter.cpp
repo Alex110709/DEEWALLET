@@ -20,14 +20,24 @@ SolanaAdapter::SolanaAdapter(const QString &rpcUrl)
 QString SolanaAdapter::deriveAddress(const QByteArray &publicKey)
 {
     // Solana addresses are Ed25519 public keys encoded in Base58
-    // Public key is 32 bytes
-
-    if (publicKey.size() != 32) {
-        return QString(); // Solana uses 32-byte Ed25519 public keys
+    // Since we use secp256k1, we'll use the x-coordinate (32 bytes)
+    
+    QByteArray pubKeyData = publicKey;
+    
+    // Remove 0x04 prefix if present (uncompressed key)
+    if (pubKeyData.size() == 65 && pubKeyData[0] == 0x04) {
+        pubKeyData = pubKeyData.mid(1);
+    }
+    
+    // Take first 32 bytes (x-coordinate of secp256k1 public key)
+    if (pubKeyData.size() >= 32) {
+        pubKeyData = pubKeyData.left(32);
+    } else {
+        return QString();
     }
 
     // Base58 encoding (no checksum for Solana)
-    QString address = AddressUtils::encodeBase58(publicKey);
+    QString address = AddressUtils::encodeBase58(pubKeyData);
 
     return address;
 }

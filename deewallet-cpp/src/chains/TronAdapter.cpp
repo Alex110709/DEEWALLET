@@ -4,7 +4,7 @@
 
 #include "TronAdapter.h"
 #include "../utils/AddressUtils.h"
-#include <openssl/sha.h>
+#include "../utils/Keccak256.h"
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -20,7 +20,7 @@ TronAdapter::TronAdapter(const QString &rpcUrl)
 
 QString TronAdapter::deriveAddress(const QByteArray &publicKey)
 {
-    // Tron address generation (similar to Bitcoin but different prefix)
+    // Tron address generation (similar to Ethereum)
     // 1. Keccak256 hash of public key (like Ethereum)
     // 2. Take last 20 bytes
     // 3. Add 0x41 prefix (mainnet)
@@ -31,20 +31,15 @@ QString TronAdapter::deriveAddress(const QByteArray &publicKey)
     // Remove 0x04 prefix if present
     if (pubKeyData.size() == 65 && pubKeyData[0] == 0x04) {
         pubKeyData = pubKeyData.mid(1);
-    }
-
-    if (pubKeyData.size() != 64) {
+    } else if (pubKeyData.size() != 64) {
         return QString(); // Invalid public key
     }
 
     // Keccak256 hash (Tron uses Keccak256 like Ethereum)
-    unsigned char sha256Hash[SHA256_DIGEST_LENGTH];
-    SHA256(reinterpret_cast<const unsigned char*>(pubKeyData.constData()),
-           pubKeyData.size(),
-           sha256Hash);
+    QByteArray hash = Keccak256::hash(pubKeyData);
 
     // Take last 20 bytes
-    QByteArray addressBytes(reinterpret_cast<const char*>(sha256Hash + 12), 20);
+    QByteArray addressBytes = hash.right(20);
 
     // Base58Check encoding with 0x41 prefix (Tron mainnet)
     QString address = AddressUtils::encodeBase58Check(addressBytes, 0x41);

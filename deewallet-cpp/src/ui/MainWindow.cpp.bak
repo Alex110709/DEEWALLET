@@ -249,3 +249,47 @@ void MainWindow::onLoadingStarted(const QString &filepath, const QString &passwo
     watcher->setFuture(future);
 }
 
+void MainWindow::processDecryption(const QString &filepath, const QString &password)
+{
+    qDebug() << "[MainWindow] Starting decryption...";
+    
+    // Try to decrypt keyfile
+    KeyfileManager keyfileManager;
+    QByteArray decrypted = keyfileManager.loadAndDecrypt(filepath, password);
+    
+    qDebug() << "[MainWindow] Decryption complete. Size:" << decrypted.size();
+    
+    loadingScreen->stopAnimation();
+    
+    if (decrypted.isEmpty()) {
+        qDebug() << "[MainWindow] Decryption failed - empty result";
+        stackedWidget->setCurrentWidget(welcomeScreen);
+        QMessageBox::critical(this, "오류", 
+            QString("비밀번호가 틀렸거나 파일이 손상되었습니다.\n\n"
+                    "파일: %1\n"
+                    "파일 크기: %2 bytes")
+            .arg(filepath)
+            .arg(QFile(filepath).size()));
+        return;
+    }
+    
+    // Parse JSON to get mnemonic
+    QJsonDocument doc = QJsonDocument::fromJson(decrypted);
+    if (!doc.isObject()) {
+        stackedWidget->setCurrentWidget(welcomeScreen);
+        QMessageBox::critical(this, "오류", "키파일 형식이 올바르지 않습니다.");
+        return;
+    }
+    
+    QJsonObject obj = doc.object();
+    QString mnemonic = obj["mnemonic"].toString();
+    
+    if (mnemonic.isEmpty()) {
+        stackedWidget->setCurrentWidget(welcomeScreen);
+        QMessageBox::critical(this, "오류", "복구 문구를 찾을 수 없습니다.");
+        return;
+    }
+    
+    // Success - show wallet screen
+    showWalletScreen(mnemonic);
+}

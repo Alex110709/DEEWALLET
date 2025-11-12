@@ -11,6 +11,7 @@
 #include <QEventLoop>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDebug>
 
 BitcoinAdapter::BitcoinAdapter(const QString &rpcUrl, bool isTestnet)
     : isTestnet(isTestnet)
@@ -23,14 +24,43 @@ QString BitcoinAdapter::deriveAddress(const QByteArray &publicKey)
     // P2WPKH (Native SegWit) address generation
     // bc1q... for mainnet, tb1q... for testnet
 
-    if (publicKey.size() != 33) {
-        return QString(); // Must be compressed public key
+    qDebug() << "[BitcoinAdapter] Input public key size:" << publicKey.size();
+    if (!publicKey.isEmpty()) {
+        qDebug() << "[BitcoinAdapter] First byte:" << QString("0x%1").arg((unsigned char)publicKey[0], 2, 16, QChar('0'));
     }
 
-    // Step 1: SHA256 hash of public key
+    QByteArray compressedKey;
+    
+    // Convert uncompressed (65 bytes) to compressed (33 bytes)
+    if (publicKey.size() == 65 && publicKey[0] == 0x04) {
+        qDebug() << "[BitcoinAdapter] Converting uncompressed to compressed key";
+        // Uncompressed key format: 0x04 || X (32 bytes) || Y (32 bytes)
+        // Compressed key format: prefix (0x02 or 0x03) || X (32 bytes)
+        
+        compressedKey.resize(33);
+        
+        // Determine prefix based on Y coordinate parity
+        unsigned char yLast = static_cast<unsigned char>(publicKey[64]);
+        compressedKey[0] = (yLast & 1) ? 0x03 : 0x02;
+        
+        // Copy X coordinate (bytes 1-32 from uncompressed key)
+        for (int i = 0; i < 32; i++) {
+            compressedKey[i + 1] = publicKey[i + 1];
+        }
+        qDebug() << "[BitcoinAdapter] Compressed key prefix:" << QString("0x%1").arg((unsigned char)compressedKey[0], 2, 16, QChar('0'));
+    } else if (publicKey.size() == 33) {
+        // Already compressed
+        qDebug() << "[BitcoinAdapter] Key is already compressed";
+        compressedKey = publicKey;
+    } else {
+        qDebug() << "[BitcoinAdapter] ERROR: Invalid public key size!";
+        return QString(); // Invalid public key size
+    }
+
+    // Step 1: SHA256 hash of compressed public key
     unsigned char sha256Hash[SHA256_DIGEST_LENGTH];
-    SHA256(reinterpret_cast<const unsigned char*>(publicKey.constData()),
-           publicKey.size(),
+    SHA256(reinterpret_cast<const unsigned char*>(compressedKey.constData()),
+           compressedKey.size(),
            sha256Hash);
 
     QByteArray sha256Data(reinterpret_cast<const char*>(sha256Hash), SHA256_DIGEST_LENGTH);

@@ -124,12 +124,12 @@ QByteArray BIP32::getPublicKey(const ExtendedKey &privateKey)
     EC_POINT_mul(group, pub, priv, nullptr, nullptr, nullptr);
     EC_KEY_set_public_key(eckey, pub);
 
-    // Serialize public key (compressed format)
-    unsigned char pubkey[33];
+    // Serialize public key (uncompressed format for Ethereum/Tron compatibility)
+    unsigned char pubkey[65];
     size_t len = EC_POINT_point2oct(
         group,
         pub,
-        POINT_CONVERSION_COMPRESSED,
+        POINT_CONVERSION_UNCOMPRESSED,
         pubkey,
         sizeof(pubkey),
         nullptr

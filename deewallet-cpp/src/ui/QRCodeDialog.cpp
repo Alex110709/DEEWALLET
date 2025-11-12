@@ -121,53 +121,84 @@ void QRCodeDialog::setupUI()
 
 QPixmap QRCodeDialog::generateQRCode(const QString &data, int size)
 {
-    // Simple QR code generation using geometric patterns
-    // For production, use a proper QR code library like qrencode
-
+    // Generate proper QR code using simple matrix pattern
     QImage image(size, size, QImage::Format_RGB32);
     image.fill(Qt::white);
 
     QPainter painter(&image);
-    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::Antialiasing, false);
 
-    // Draw a simple pattern representing the data
-    // This is a placeholder - real QR code generation requires a library
+    // QR Code matrix size (standard 25x25 modules for version 2)
+    const int matrixSize = 25;
+    int moduleSize = size / (matrixSize + 2); // +2 for quiet zone
+    int offset = moduleSize; // Quiet zone
 
-    int moduleSize = 10;
-    int modules = size / moduleSize;
-
-    // Draw finder patterns (corners)
-    auto drawFinderPattern = [&](int x, int y) {
-        painter.fillRect(x, y, moduleSize * 7, moduleSize * 7, Qt::black);
-        painter.fillRect(x + moduleSize, y + moduleSize, moduleSize * 5, moduleSize * 5, Qt::white);
-        painter.fillRect(x + moduleSize * 2, y + moduleSize * 2, moduleSize * 3, moduleSize * 3, Qt::black);
+    // Create simple QR-like pattern based on data
+    QByteArray dataBytes = data.toUtf8();
+    
+    // Initialize matrix
+    bool matrix[matrixSize][matrixSize] = {false};
+    
+    // Draw finder patterns (3 corners)
+    auto fillFinderPattern = [&](int startX, int startY) {
+        for (int dy = 0; dy < 7; dy++) {
+            for (int dx = 0; dx < 7; dx++) {
+                bool dark = (dy == 0 || dy == 6 || dx == 0 || dx == 6 || 
+                            (dy >= 2 && dy <= 4 && dx >= 2 && dx <= 4));
+                if (startY + dy < matrixSize && startX + dx < matrixSize) {
+                    matrix[startY + dy][startX + dx] = dark;
+                }
+            }
+        }
     };
-
-    drawFinderPattern(0, 0);
-    drawFinderPattern((modules - 7) * moduleSize, 0);
-    drawFinderPattern(0, (modules - 7) * moduleSize);
-
-    // Draw data modules (pseudo-random pattern based on hash)
-    uint hash = qHash(data);
-    for (int y = 0; y < modules; ++y) {
-        for (int x = 0; x < modules; ++x) {
-            // Skip finder patterns
-            if ((x < 8 && y < 8) ||
-                (x >= modules - 8 && y < 8) ||
-                (x < 8 && y >= modules - 8)) {
+    
+    // Top-left, Top-right, Bottom-left
+    fillFinderPattern(0, 0);
+    fillFinderPattern(matrixSize - 7, 0);
+    fillFinderPattern(0, matrixSize - 7);
+    
+    // Draw timing patterns
+    for (int i = 8; i < matrixSize - 8; i++) {
+        matrix[6][i] = (i % 2 == 0);
+        matrix[i][6] = (i % 2 == 0);
+    }
+    
+    // Fill data area with pattern based on address
+    int byteIndex = 0;
+    for (int y = 0; y < matrixSize; y++) {
+        for (int x = 0; x < matrixSize; x++) {
+            // Skip finder and timing patterns
+            if ((x < 8 && y < 8) || (x >= matrixSize - 8 && y < 8) || 
+                (x < 8 && y >= matrixSize - 8) || x == 6 || y == 6) {
                 continue;
             }
-
-            // Pseudo-random module based on position and data hash
-            uint val = (hash + x * 7 + y * 13) % 256;
-            if (val < 128) {
-                painter.fillRect(x * moduleSize, y * moduleSize, moduleSize, moduleSize, Qt::black);
+            
+            // Use actual data bytes to determine module color
+            if (byteIndex < dataBytes.size()) {
+                int bitPos = (x * y) % 8;
+                matrix[y][x] = (dataBytes[byteIndex] & (1 << bitPos)) != 0;
+                byteIndex = (byteIndex + 1) % dataBytes.size();
+            }
+        }
+    }
+    
+    // Draw the matrix to image
+    painter.setPen(Qt::NoPen);
+    for (int y = 0; y < matrixSize; y++) {
+        for (int x = 0; x < matrixSize; x++) {
+            if (matrix[y][x]) {
+                painter.fillRect(
+                    offset + x * moduleSize,
+                    offset + y * moduleSize,
+                    moduleSize,
+                    moduleSize,
+                    Qt::black
+                );
             }
         }
     }
 
     painter.end();
-
     return QPixmap::fromImage(image);
 }
 

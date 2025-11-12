@@ -7,6 +7,8 @@
 #include <openssl/ecdsa.h>
 #include <openssl/sha.h>
 #include <QDataStream>
+#include <QIODevice>
+#include <QIODevice>
 
 QByteArray TransactionBuilder::buildBitcoinTransaction(const QVector<UTXO> &inputs,
                                                        const QString &toAddress,

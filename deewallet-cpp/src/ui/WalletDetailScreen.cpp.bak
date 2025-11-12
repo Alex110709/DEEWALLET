@@ -34,70 +34,48 @@ WalletDetailScreen::WalletDetailScreen(const QString &mnemonic, QWidget *parent)
 void WalletDetailScreen::setupUI()
 {
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(30, 25, 30, 25);
+    mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(20);
 
-    // Top bar - cleaner layout
+    // Top bar with back button
     auto *topBar = new QHBoxLayout();
-    
+    backButton->setObjectName("secondaryButton");
+    backButton->setMaximumWidth(100);
+    topBar->addWidget(backButton);
+    topBar->addStretch();
+
     auto *titleLabel = new QLabel("DEE WALLET", this);
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 24px;
-            font-weight: 700;
-            color: #F1F5F9;
-            border: none;
-        }
-    )");
+    titleLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
     topBar->addWidget(titleLabel);
     topBar->addStretch();
 
-    backButton->setObjectName("secondaryButton");
-    backButton->setMaximumWidth(100);
-    backButton->setMinimumHeight(38);
-    topBar->addWidget(backButton);
-
     mainLayout->addLayout(topBar);
 
-    // Refresh button - cleaner design
-    refreshButton->setMinimumHeight(44);
-    refreshButton->setCursor(Qt::PointingHandCursor);
+    // Action buttons
+    refreshButton->setMinimumHeight(45);
     refreshButton->setStyleSheet(R"(
         QPushButton {
-            background-color: #3B82F6;
+            background-color: #4a9eff;
             border: none;
             border-radius: 8px;
             padding: 12px;
-            color: #FFFFFF;
+            color: #ffffff;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: bold;
         }
         QPushButton:hover {
-            background-color: #2563EB;
+            background-color: #5aafff;
         }
         QPushButton:pressed {
-            background-color: #1D4ED8;
-        }
-        QPushButton:disabled {
-            background-color: #334155;
-            color: #64748B;
+            background-color: #3a8eef;
         }
     )");
 
     mainLayout->addWidget(refreshButton);
 
     // Chain list title
-    auto *listTitle = new QLabel("보유 자산", this);
-    listTitle->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 16px;
-            font-weight: 600;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    auto *listTitle = new QLabel("자산 목록", this);
+    listTitle->setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff; margin-top: 10px;");
     mainLayout->addWidget(listTitle);
 
     // Chain list container with scroll
@@ -109,22 +87,7 @@ void WalletDetailScreen::setupUI()
             border: none;
             background-color: transparent;
         }
-        QScrollBar:vertical {
-            background: #1E293B;
-            width: 8px;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical {
-            background: #3B82F6;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical:hover {
-            background: #2563EB;
-        }
     )");
-    
-    // Set container background to transparent
-    chainListContainer->setStyleSheet("QWidget { background-color: transparent; }");
     
     chainListLayout->setSpacing(12);
     chainListLayout->setAlignment(Qt::AlignTop);
@@ -133,71 +96,40 @@ void WalletDetailScreen::setupUI()
 
     // Initialize chain data
     chains = {
-        // Non-EVM
         {"Bitcoin", "BTC", "", "0.0", nullptr, nullptr},
-        {"Litecoin", "LTC", "", "0.0", nullptr, nullptr},
-        {"Dogecoin", "DOGE", "", "0.0", nullptr, nullptr},
+        {"Ethereum", "ETH", "", "0.0", nullptr, nullptr},
         {"Tron", "TRX", "", "0.0", nullptr, nullptr},
         {"Solana", "SOL", "", "0.0", nullptr, nullptr},
-        
-        // EVM Chains
-        {"Ethereum", "ETH", "", "0.0", nullptr, nullptr},
-        {"BNB Chain", "BNB", "", "0.0", nullptr, nullptr},
-        {"Polygon", "POL", "", "0.0", nullptr, nullptr},
-        {"Arbitrum", "ARB", "", "0.0", nullptr, nullptr},
-        {"Optimism", "OP", "", "0.0", nullptr, nullptr},
-        {"Avalanche", "AVAX", "", "0.0", nullptr, nullptr},
-        {"Base", "BASE", "", "0.0", nullptr, nullptr},
-        {"Fantom", "FTM", "", "0.0", nullptr, nullptr},
-        {"Cronos", "CRO", "", "0.0", nullptr, nullptr},
-        {"Gnosis", "xDAI", "", "0.0", nullptr, nullptr}
+        {"Litecoin", "LTC", "", "0.0", nullptr, nullptr},
+        {"Dogecoin", "DOGE", "", "0.0", nullptr, nullptr}
     };
 
     // Create card for each chain
     for (int i = 0; i < chains.size(); ++i) {
         auto *chainCard = new QWidget(chainListContainer);
-        chainCard->setMinimumHeight(90);
-        chainCard->setCursor(Qt::PointingHandCursor);
+        chainCard->setMinimumHeight(100);
         chainCard->setStyleSheet(R"(
             QWidget {
-                background-color: #1E293B;
-                border: 1px solid #334155;
-                border-radius: 10px;
-            }
-            QWidget:hover {
-                background-color: #334155;
-                border: 1px solid #3B82F6;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #3a3a3a, stop:1 #2a2a2a);
+                border: 2px solid #4a4a4a;
+                border-radius: 12px;
             }
         )");
 
         auto *cardLayout = new QHBoxLayout(chainCard);
-        cardLayout->setContentsMargins(20, 16, 20, 16);
-        cardLayout->setSpacing(16);
+        cardLayout->setContentsMargins(20, 15, 20, 15);
+        cardLayout->setSpacing(15);
 
         // Left side: Chain info
         auto *leftLayout = new QVBoxLayout();
-        leftLayout->setSpacing(6);
+        leftLayout->setSpacing(5);
 
         auto *chainNameLabel = new QLabel(chains[i].name + " (" + chains[i].symbol + ")", chainCard);
-        chainNameLabel->setStyleSheet(R"(
-            QLabel {
-                background: transparent;
-                font-size: 16px;
-                font-weight: 600;
-                color: #E2E8F0;
-                border: none;
-            }
-        )");
+        chainNameLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #ffffff;");
 
         auto *tapHintLabel = new QLabel("탭하여 주소 관리", chainCard);
-        tapHintLabel->setStyleSheet(R"(
-            QLabel {
-                background: transparent;
-                font-size: 11px;
-                color: #64748B;
-                border: none;
-            }
-        )");
+        tapHintLabel->setStyleSheet("font-size: 11px; color: #666666;");
 
         leftLayout->addWidget(chainNameLabel);
         leftLayout->addWidget(tapHintLabel);
@@ -210,15 +142,7 @@ void WalletDetailScreen::setupUI()
         rightLayout->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
         auto *balanceLabel = new QLabel("0.0 " + chains[i].symbol, chainCard);
-        balanceLabel->setStyleSheet(R"(
-            QLabel {
-                background: transparent;
-                font-size: 18px;
-                font-weight: 700;
-                color: #3B82F6;
-                border: none;
-            }
-        )");
+        balanceLabel->setStyleSheet("font-size: 20px; font-weight: bold; color: #4a9eff;");
         balanceLabel->setAlignment(Qt::AlignRight);
 
         rightLayout->addWidget(balanceLabel);
@@ -241,6 +165,8 @@ void WalletDetailScreen::setupUI()
     // Connect buttons
     connect(backButton, &QPushButton::clicked, this, &WalletDetailScreen::onBackClicked);
     connect(refreshButton, &QPushButton::clicked, this, &WalletDetailScreen::onRefreshBalances);
+    connect(sendButton, &QPushButton::clicked, this, &WalletDetailScreen::onSendTransaction);
+    connect(receiveButton, &QPushButton::clicked, this, &WalletDetailScreen::onReceive);
 }
 
 void WalletDetailScreen::loadWallet()
@@ -337,6 +263,76 @@ void WalletDetailScreen::onRefreshBalances()
     QMessageBox::information(this, "완료", message);
 }
 
+void WalletDetailScreen::onSendTransaction()
+{
+    // Show dialog to select chain first
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("체인 선택");
+    msgBox.setText("전송할 체인을 선택하세요:");
+    
+    QPushButton *btcButton = msgBox.addButton("Bitcoin (BTC)", QMessageBox::ActionRole);
+    QPushButton *ethButton = msgBox.addButton("Ethereum (ETH)", QMessageBox::ActionRole);
+    QPushButton *trxButton = msgBox.addButton("Tron (TRX)", QMessageBox::ActionRole);
+    QPushButton *solButton = msgBox.addButton("Solana (SOL)", QMessageBox::ActionRole);
+    QPushButton *ltcButton = msgBox.addButton("Litecoin (LTC)", QMessageBox::ActionRole);
+    QPushButton *dogeButton = msgBox.addButton("Dogecoin (DOGE)", QMessageBox::ActionRole);
+    msgBox.addButton(QMessageBox::Cancel);
+    
+    msgBox.exec();
+    
+    int selectedChain = -1;
+    if (msgBox.clickedButton() == btcButton) selectedChain = 0;
+    else if (msgBox.clickedButton() == ethButton) selectedChain = 1;
+    else if (msgBox.clickedButton() == trxButton) selectedChain = 2;
+    else if (msgBox.clickedButton() == solButton) selectedChain = 3;
+    else if (msgBox.clickedButton() == ltcButton) selectedChain = 4;
+    else if (msgBox.clickedButton() == dogeButton) selectedChain = 5;
+    
+    if (selectedChain >= 0 && selectedChain < chains.size()) {
+        QString chainType = chains[selectedChain].name;
+        QString fromAddress = chains[selectedChain].address;
+
+        SendTransactionDialog dialog(chainType, fromAddress, mnemonic, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            // Transaction sent, refresh balances
+            refreshBalances();
+        }
+    }
+}
+
+void WalletDetailScreen::onReceive()
+{
+    // Show dialog to select chain
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("체인 선택");
+    msgBox.setText("받을 체인을 선택하세요:");
+    
+    QPushButton *btcButton = msgBox.addButton("Bitcoin (BTC)", QMessageBox::ActionRole);
+    QPushButton *ethButton = msgBox.addButton("Ethereum (ETH)", QMessageBox::ActionRole);
+    QPushButton *trxButton = msgBox.addButton("Tron (TRX)", QMessageBox::ActionRole);
+    QPushButton *solButton = msgBox.addButton("Solana (SOL)", QMessageBox::ActionRole);
+    QPushButton *ltcButton = msgBox.addButton("Litecoin (LTC)", QMessageBox::ActionRole);
+    QPushButton *dogeButton = msgBox.addButton("Dogecoin (DOGE)", QMessageBox::ActionRole);
+    msgBox.addButton(QMessageBox::Cancel);
+    
+    msgBox.exec();
+    
+    int selectedChain = -1;
+    if (msgBox.clickedButton() == btcButton) selectedChain = 0;
+    else if (msgBox.clickedButton() == ethButton) selectedChain = 1;
+    else if (msgBox.clickedButton() == trxButton) selectedChain = 2;
+    else if (msgBox.clickedButton() == solButton) selectedChain = 3;
+    else if (msgBox.clickedButton() == ltcButton) selectedChain = 4;
+    else if (msgBox.clickedButton() == dogeButton) selectedChain = 5;
+    
+    if (selectedChain >= 0 && selectedChain < chains.size()) {
+        QString address = chains[selectedChain].address;
+        QString chainName = chains[selectedChain].name;
+
+        QRCodeDialog dialog(address, chainName, this);
+        dialog.exec();
+    }
+}
 
 void WalletDetailScreen::onCopyAddress(const QString &address)
 {

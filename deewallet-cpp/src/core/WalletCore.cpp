@@ -93,6 +93,8 @@ QString WalletCore::deriveAddress(const QString &chainType, uint32_t accountInde
 {
     // BIP44 paths:
     // Bitcoin:  m/44'/0'/0'/0/0
+    // Litecoin: m/44'/2'/0'/0/0
+    // Dogecoin: m/44'/3'/0'/0/0
     // Ethereum: m/44'/60'/0'/0/0
     // Tron:     m/44'/195'/0'/0/0
     // Solana:   m/44'/501'/0'/0/0
@@ -100,12 +102,20 @@ QString WalletCore::deriveAddress(const QString &chainType, uint32_t accountInde
     QString path;
     if (chainType == "BTC" || chainType == "bitcoin") {
         path = QString("m/44'/0'/%1'/0/0").arg(accountIndex);
-    } else if (chainType == "ETH" || chainType == "ethereum") {
-        path = QString("m/44'/60'/%1'/0/0").arg(accountIndex);
+    } else if (chainType == "LTC" || chainType == "litecoin") {
+        path = QString("m/44'/2'/%1'/0/0").arg(accountIndex);
+    } else if (chainType == "DOGE" || chainType == "dogecoin") {
+        path = QString("m/44'/3'/%1'/0/0").arg(accountIndex);
     } else if (chainType == "TRX" || chainType == "tron") {
         path = QString("m/44'/195'/%1'/0/0").arg(accountIndex);
     } else if (chainType == "SOL" || chainType == "solana") {
         path = QString("m/44'/501'/%1'/0/0").arg(accountIndex);
+    } else if (chainType == "ETH" || chainType == "BNB" || chainType == "POL" || 
+               chainType == "ARB" || chainType == "OP" || chainType == "AVAX" ||
+               chainType == "BASE" || chainType == "FTM" || chainType == "CRO" || 
+               chainType == "xDAI") {
+        // All EVM chains use Ethereum's BIP44 path (m/44'/60'/0'/0/0)
+        path = QString("m/44'/60'/%1'/0/0").arg(accountIndex);
     } else {
         return QString();
     }
@@ -119,14 +129,24 @@ QString WalletCore::deriveAddress(const QString &chainType, uint32_t accountInde
     if (chainType == "BTC" || chainType == "bitcoin") {
         BitcoinAdapter adapter("", false);
         return adapter.deriveAddress(publicKey);
-    } else if (chainType == "ETH" || chainType == "ethereum") {
-        EthereumAdapter adapter("");
+    } else if (chainType == "LTC" || chainType == "litecoin") {
+        BitcoinAdapter adapter("", false);
+        return adapter.deriveAddress(publicKey);
+    } else if (chainType == "DOGE" || chainType == "dogecoin") {
+        BitcoinAdapter adapter("", false);
         return adapter.deriveAddress(publicKey);
     } else if (chainType == "TRX" || chainType == "tron") {
         TronAdapter adapter("");
         return adapter.deriveAddress(publicKey);
     } else if (chainType == "SOL" || chainType == "solana") {
         SolanaAdapter adapter("");
+        return adapter.deriveAddress(publicKey);
+    } else if (chainType == "ETH" || chainType == "BNB" || chainType == "POL" || 
+               chainType == "ARB" || chainType == "OP" || chainType == "AVAX" ||
+               chainType == "BASE" || chainType == "FTM" || chainType == "CRO" || 
+               chainType == "xDAI") {
+        // All EVM chains use same address derivation (Ethereum style)
+        EthereumAdapter adapter("", EthereumAdapter::getChainId(chainType));
         return adapter.deriveAddress(publicKey);
     }
 

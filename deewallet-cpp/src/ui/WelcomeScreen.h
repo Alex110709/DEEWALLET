@@ -7,10 +7,11 @@
 #define WELCOMESCREEN_H
 
 #include <QWidget>
-#include <QListWidget>
 #include <QPushButton>
 #include <QLabel>
 #include <QVector>
+#include <QScrollArea>
+#include <QVBoxLayout>
 
 struct KeyfileInfo {
     QString filename;
@@ -19,6 +20,31 @@ struct KeyfileInfo {
     qint64 updatedAt;
     qint64 size;
     bool isValid;
+};
+
+// Custom clickable card widget for keyfiles
+class KeyfileCard : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit KeyfileCard(const KeyfileInfo &info, QWidget *parent = nullptr);
+
+signals:
+    void clicked(const QString &filepath);
+
+protected:
+    void enterEvent(QEnterEvent *event) override;
+    void leaveEvent(QEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+
+private:
+    KeyfileInfo keyfileInfo;
+    QLabel *nameLabel;
+    QLabel *dateLabel;
+    bool isHovered;
+    
+    void updateStyle();
 };
 
 class WelcomeScreen : public QWidget
@@ -31,21 +57,23 @@ public:
 signals:
     void walletCreated(const QString &mnemonic);
     void walletImported(const QString &mnemonic);
-    void keyfileSelected(const QString &filepath);
+    void loadingStarted(const QString &filepath, const QString &password);
 
 private slots:
     void onCreateWallet();
     void onImportWallet();
-    void onKeyfileDoubleClicked(QListWidgetItem *item);
+    void onKeyfileClicked(const QString &filepath);
     void refreshKeyfileList();
 
 private:
     void setupUI();
     QVector<KeyfileInfo> scanKeyfiles();
-    QString formatFileSize(qint64 bytes);
     QString formatDate(qint64 timestamp);
+    void showPasswordDialog(const QString &filepath);
 
-    QListWidget *keyfileList;
+    QScrollArea *scrollArea;
+    QWidget *keyfileContainer;
+    QVBoxLayout *keyfileLayout;
     QPushButton *createButton;
     QPushButton *importButton;
     QLabel *titleLabel;

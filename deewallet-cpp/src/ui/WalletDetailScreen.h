@@ -10,7 +10,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableWidget>
-#include <QTabWidget>
+#include <QVBoxLayout>
+#include <QObject>
+#include <QEvent>
 #include "../core/WalletCore.h"
 
 class WalletDetailScreen : public QWidget
@@ -19,17 +21,18 @@ class WalletDetailScreen : public QWidget
 
 public:
     explicit WalletDetailScreen(const QString &mnemonic, QWidget *parent = nullptr);
+    void setKeyfilePath(const QString &path) { keyfilePath = path; }
+    void setPassword(const QString &pwd) { password = pwd; }
 
 signals:
     void backToWelcome();
+    void chainClicked(const QString &chainName, const QString &chainSymbol, const QString &mnemonic);
 
 private slots:
     void onRefreshBalances();
-    void onSendTransaction();
-    void onReceive();
     void onCopyAddress(const QString &address);
-    void onExportKeyfile();
     void onBackClicked();
+    void onChainCardClicked(int chainIndex);
 
 private:
     void setupUI();
@@ -38,29 +41,30 @@ private:
     void updateChainCard(int index, const QString &chain, const QString &address, const QString &balance);
 
     QString mnemonic;
+    QString keyfilePath;
+    QString password;
     WalletCore wallet;
 
     // UI Components
-    QLabel *totalBalanceLabel;
-    QTabWidget *chainTabs;
+    QWidget *chainListContainer;
+    QVBoxLayout *chainListLayout;
     QPushButton *refreshButton;
-    QPushButton *sendButton;
-    QPushButton *receiveButton;
-    QPushButton *exportButton;
     QPushButton *backButton;
 
     // Chain data
     struct ChainData {
         QString name;
+        QString symbol;
         QString address;
         QString balance;
-        QWidget *widget;
-        QLabel *addressLabel;
+        QWidget *cardWidget;
         QLabel *balanceLabel;
-        QPushButton *copyButton;
     };
 
     QVector<ChainData> chains;
+    
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 };
 
 #endif // WALLETDETAILSCREEN_H

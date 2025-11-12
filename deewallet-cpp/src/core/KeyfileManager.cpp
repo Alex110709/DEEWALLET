@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QDateTime>
+#include <QDebug>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
@@ -168,10 +169,11 @@ QJsonObject KeyfileManager::getKeyfileMetadata(const QString &filePath)
 QByteArray KeyfileManager::deriveKey(const QString &password, const QByteArray &salt)
 {
     QByteArray key(KEY_SIZE, 0);
+    QByteArray passwordBytes = password.toUtf8();  // Store to avoid double conversion
 
     PKCS5_PBKDF2_HMAC(
-        password.toUtf8().constData(),
-        password.toUtf8().size(),
+        passwordBytes.constData(),
+        passwordBytes.size(),
         reinterpret_cast<const unsigned char*>(salt.constData()),
         salt.size(),
         PBKDF2_ITERATIONS,
@@ -255,9 +257,10 @@ QByteArray KeyfileManager::decryptAES256GCM(const QByteArray &ciphertext,
                       ciphertext.size());
     plaintext_len = len;
 
-    // Set authentication tag
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, TAG_SIZE,
-                        const_cast<char*>(tag.constData()));
+    // Set authentication tag (must be done before DecryptFinal)
+    // Need to use a non-const pointer for EVP_CIPHER_CTX_ctrl
+    QByteArray tagCopy = tag;  // Make a mutable copy
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, TAG_SIZE, tagCopy.data());
 
     // Finalize (this verifies the tag)
     int ret = EVP_DecryptFinal_ex(ctx,
@@ -267,7 +270,7 @@ QByteArray KeyfileManager::decryptAES256GCM(const QByteArray &ciphertext,
     EVP_CIPHER_CTX_free(ctx);
 
     if (ret <= 0) {
-        // Authentication failed
+        // Authentication failed - incorrect password or corrupted data
         return QByteArray();
     }
 

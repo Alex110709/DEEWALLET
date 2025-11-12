@@ -8,6 +8,7 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QLabel>
 #include <QApplication>
 #include <QFile>
 #include <QJsonDocument>

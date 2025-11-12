@@ -7,8 +7,11 @@
 
 #include <QDialog>
 #include <QLineEdit>
-#include <QTextEdit>
 #include <QPushButton>
+#include <QStackedWidget>
+#include <QGridLayout>
+#include <QLabel>
+#include <QVector>
 
 class CreateWalletDialog : public QDialog
 {
@@ -19,18 +22,32 @@ public:
     QString getMnemonic() const { return createdMnemonic; }
 
 private slots:
-    void onGenerateMnemonic();
+    void onNextClicked();
     void onCreateWallet();
+    void onBackClicked();
 
 private:
     void setupUI();
+    void setupPasswordPage();
+    void setupMnemonicPage();
+    void showMnemonicWords(const QString &mnemonic);
 
-    QTextEdit *mnemonicDisplay;
+    QStackedWidget *stackedWidget;
+    
+    // Password page widgets
+    QWidget *passwordPage;
     QLineEdit *passwordInput;
     QLineEdit *confirmPasswordInput;
-    QPushButton *generateButton;
-    QPushButton *createButton;
+    QPushButton *nextButton;
     QPushButton *cancelButton;
+    
+    // Mnemonic page widgets
+    QWidget *mnemonicPage;
+    QGridLayout *mnemonicGrid;
+    QVector<QLabel*> wordLabels;
+    QPushButton *createButton;
+    QPushButton *backButton;
+    
     QString createdMnemonic;
 };
 

@@ -180,7 +180,7 @@ QString EthereumAdapter::getRpcUrl(const QString &chainSymbol)
     static QMap<QString, QString> rpcUrls = {
         {"ETH", "https://eth.llamarpc.com"},
         {"BNB", "https://bsc-dataseed.binance.org"},
-        {"POL", "https://polygon-rpc.com"},
+        {"MATIC", "https://polygon-rpc.com"},
         {"ARB", "https://arb1.arbitrum.io/rpc"},
         {"OP", "https://mainnet.optimism.io"},
         {"AVAX", "https://api.avax.network/ext/bc/C/rpc"},
@@ -198,7 +198,7 @@ int EthereumAdapter::getChainId(const QString &chainSymbol)
     static QMap<QString, int> chainIds = {
         {"ETH", 1},
         {"BNB", 56},
-        {"POL", 137},
+        {"MATIC", 137},
         {"ARB", 42161},
         {"OP", 10},
         {"AVAX", 43114},
@@ -216,7 +216,7 @@ QString EthereumAdapter::getExplorerUrl(const QString &chainSymbol)
     static QMap<QString, QString> explorerUrls = {
         {"ETH", "https://etherscan.io"},
         {"BNB", "https://bscscan.com"},
-        {"POL", "https://polygonscan.com"},
+        {"MATIC", "https://polygonscan.com"},
         {"ARB", "https://arbiscan.io"},
         {"OP", "https://optimistic.etherscan.io"},
         {"AVAX", "https://snowtrace.io"},
