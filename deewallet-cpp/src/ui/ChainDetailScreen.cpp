@@ -5,6 +5,8 @@
 #include "ChainDetailScreen.h"
 #include "SendTransactionDialog.h"
 #include "QRCodeDialog.h"
+#include "StyleHelper.h"
+#include "DesignTokens.h"
 #include "../chains/BitcoinAdapter.h"
 #include "../chains/EthereumAdapter.h"
 #include "../chains/TronAdapter.h"
@@ -56,106 +58,73 @@ void ChainDetailScreen::setupUI()
     // Top bar
     auto *topBar = new QHBoxLayout();
     backButton->setObjectName("secondaryButton");
-    backButton->setMinimumHeight(38);
+    backButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_SM);
     backButton->setMaximumWidth(100);
     backButton->setCursor(Qt::PointingHandCursor);
-    
+    backButton->setStyleSheet(StyleHelper::secondaryButton());
+
     topBar->addWidget(backButton);
     topBar->addStretch();
-    
+
     mainLayout->addLayout(topBar);
 
     // Title with Balance
     auto *titleBalanceLayout = new QVBoxLayout();
-    titleBalanceLayout->setSpacing(8);
-    
-    chainTitleLabel->setStyleSheet(R"(
+    titleBalanceLayout->setSpacing(DesignTokens::Spacing::SPACING_SM);
+
+    chainTitleLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 28px;
-            font-weight: 700;
-            color: #F1F5F9;
+            font-size: %1px;
+            font-weight: %2;
+            color: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_3XL)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_BOLD)
+        .arg(DesignTokens::Colors::TEXT_PRIMARY));
     chainTitleLabel->setAlignment(Qt::AlignCenter);
-    
-    totalBalanceLabel->setStyleSheet(R"(
+
+    totalBalanceLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 36px;
-            font-weight: 800;
-            color: #3B82F6;
+            font-size: %1px;
+            font-weight: %2;
+            color: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_4XL)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_EXTRABOLD)
+        .arg(DesignTokens::Colors::BRAND_PRIMARY));
     totalBalanceLabel->setAlignment(Qt::AlignCenter);
-    
+
     titleBalanceLayout->addWidget(chainTitleLabel);
     titleBalanceLayout->addWidget(totalBalanceLabel);
     mainLayout->addLayout(titleBalanceLayout);
 
     // Send / Receive buttons
     auto *actionButtonLayout = new QHBoxLayout();
-    actionButtonLayout->setSpacing(12);
-    
-    sendButton->setMinimumHeight(48);
+    actionButtonLayout->setSpacing(DesignTokens::Spacing::SPACING_MD);
+
+    sendButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_LG);
     sendButton->setCursor(Qt::PointingHandCursor);
-    sendButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #3B82F6;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: #FFFFFF;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        QPushButton:hover {
-            background-color: #2563EB;
-        }
-        QPushButton:pressed {
-            background-color: #1D4ED8;
-        }
-    )");
-    
-    receiveButton->setMinimumHeight(48);
+    sendButton->setStyleSheet(StyleHelper::primaryButton());
+
+    receiveButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_LG);
     receiveButton->setCursor(Qt::PointingHandCursor);
-    receiveButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #10B981;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: #FFFFFF;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        QPushButton:hover {
-            background-color: #059669;
-        }
-        QPushButton:pressed {
-            background-color: #047857;
-        }
-    )");
-    
+    receiveButton->setStyleSheet(StyleHelper::successButton());
+
     actionButtonLayout->addWidget(sendButton);
     actionButtonLayout->addWidget(receiveButton);
     mainLayout->addLayout(actionButtonLayout);
 
     // Transaction History
     auto *historyTitle = new QLabel("거래 내역", this);
-    historyTitle->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 16px;
-            font-weight: 600;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    historyTitle->setStyleSheet(StyleHelper::subheadingLabel());
     mainLayout->addWidget(historyTitle);
-    
+
     transactionTable->setColumnCount(4);
     transactionTable->setHorizontalHeaderLabels({"날짜", "유형", "금액", "상태"});
     transactionTable->horizontalHeader()->setStretchLastSection(true);
@@ -164,91 +133,30 @@ void ChainDetailScreen::setupUI()
     transactionTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     transactionTable->setMinimumHeight(150);
     transactionTable->setMaximumHeight(250);
-    transactionTable->setStyleSheet(R"(
-        QTableWidget {
-            background-color: #1E293B;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #E2E8F0;
-            gridline-color: #334155;
-        }
-        QTableWidget::item {
-            padding: 8px;
-            border: none;
-        }
-        QTableWidget::item:selected {
-            background-color: #334155;
-        }
-        QHeaderView::section {
-            background-color: #0F172A;
-            color: #94A3B8;
-            padding: 8px;
-            border: none;
-            font-weight: 600;
-        }
-    )");
+    transactionTable->setStyleSheet(StyleHelper::tableWidget());
     mainLayout->addWidget(transactionTable);
 
     // Add address button
-    addAddressButton->setMinimumHeight(44);
+    addAddressButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_MD);
     addAddressButton->setCursor(Qt::PointingHandCursor);
-    addAddressButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #475569;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        QPushButton:hover {
-            background-color: #64748B;
-        }
-        QPushButton:pressed {
-            background-color: #334155;
-        }
-    )");
+    addAddressButton->setStyleSheet(StyleHelper::customButton(
+        DesignTokens::Colors::BG_HOVER,
+        DesignTokens::Colors::BG_ACTIVE));
     mainLayout->addWidget(addAddressButton);
 
     // Address list title
     auto *listTitle = new QLabel("주소 목록", this);
-    listTitle->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 16px;
-            font-weight: 600;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    listTitle->setStyleSheet(StyleHelper::subheadingLabel());
     mainLayout->addWidget(listTitle);
 
     // Scroll area for addresses
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setWidget(addressListContainer);
-    scrollArea->setStyleSheet(R"(
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        QScrollBar:vertical {
-            background: #1E293B;
-            width: 8px;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical {
-            background: #3B82F6;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical:hover {
-            background: #2563EB;
-        }
-    )");
-    
+    scrollArea->setStyleSheet(StyleHelper::scrollArea());
+
     // Set container background to transparent
-    addressListContainer->setStyleSheet("QWidget { background-color: transparent; }");
+    addressListContainer->setStyleSheet(StyleHelper::transparentBackground());
     
     addressListLayout->setSpacing(12);
     addressListLayout->setAlignment(Qt::AlignTop);
@@ -283,65 +191,56 @@ void ChainDetailScreen::loadAddresses()
 void ChainDetailScreen::addAddressCard(int index, const QString &address, const QString &balance)
 {
     auto *card = new QWidget(addressListContainer);
-    card->setMinimumHeight(100);
+    card->setMinimumHeight(DesignTokens::Sizes::CARD_MIN_HEIGHT_LG);
     card->setCursor(Qt::PointingHandCursor);
-    card->setStyleSheet(R"(
-        QWidget {
-            background-color: #1E293B;
-            border: 1px solid #334155;
-            border-radius: 10px;
-        }
-        QWidget:hover {
-            background-color: #334155;
-            border: 1px solid #3B82F6;
-        }
-    )");
+    card->setStyleSheet(StyleHelper::interactiveCard());
 
     // Make card clickable
     card->installEventFilter(this);
     card->setProperty("addressIndex", index);
 
     auto *cardLayout = new QHBoxLayout(card);
-    cardLayout->setContentsMargins(20, 16, 20, 16);
-    cardLayout->setSpacing(16);
+    cardLayout->setContentsMargins(DesignTokens::Spacing::SPACING_XL,
+                                   DesignTokens::Spacing::SPACING_LG,
+                                   DesignTokens::Spacing::SPACING_XL,
+                                   DesignTokens::Spacing::SPACING_LG);
+    cardLayout->setSpacing(DesignTokens::Spacing::SPACING_LG);
 
     // Left: Address info
     auto *leftLayout = new QVBoxLayout();
-    leftLayout->setSpacing(6);
+    leftLayout->setSpacing(DesignTokens::Spacing::SPACING_XS);
 
     auto *indexLabel = new QLabel(QString("주소 #%1").arg(index), card);
-    indexLabel->setStyleSheet(R"(
+    indexLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748B;
+            font-size: %1px;
+            font-weight: %2;
+            color: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_SM)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_SEMIBOLD)
+        .arg(DesignTokens::Colors::TEXT_SUBTLE));
 
     auto *addressLabel = new QLabel(address, card);
-    addressLabel->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 11px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    addressLabel->setStyleSheet(StyleHelper::monoLabel());
     addressLabel->setWordWrap(true);
-    
+
     auto *balanceLabel = new QLabel(balance + " " + chainSymbol, card);
-    balanceLabel->setStyleSheet(R"(
+    balanceLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 14px;
-            font-weight: 600;
-            color: #3B82F6;
+            font-size: %1px;
+            font-weight: %2;
+            color: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_BASE)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_SEMIBOLD)
+        .arg(DesignTokens::Colors::BRAND_PRIMARY));
 
     leftLayout->addWidget(indexLabel);
     leftLayout->addWidget(addressLabel);
@@ -353,18 +252,9 @@ void ChainDetailScreen::addAddressCard(int index, const QString &address, const 
     auto *copyButton = new QPushButton("복사", card);
     copyButton->setMaximumWidth(80);
     copyButton->setMinimumHeight(40);
-    copyButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #4a9eff;
-            border: none;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 12px;
-        }
-        QPushButton:hover {
-            background-color: #5aafff;
-        }
-    )");
+    copyButton->setStyleSheet(StyleHelper::customButton(
+        DesignTokens::Colors::BRAND_PRIMARY,
+        DesignTokens::Colors::BRAND_PRIMARY_LIGHT));
 
     connect(copyButton, &QPushButton::clicked, this, [this, address, event = static_cast<QObject*>(nullptr)]() {
         onCopyAddress(address);
