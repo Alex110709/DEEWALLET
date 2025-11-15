@@ -5,6 +5,8 @@
 #include "WelcomeScreen.h"
 #include "CreateWalletDialog.h"
 #include "ImportWalletDialog.h"
+#include "StyleHelper.h"
+#include "DesignTokens.h"
 #include "../core/KeyfileManager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -33,31 +35,36 @@ KeyfileCard::KeyfileCard(const KeyfileInfo &info, QWidget *parent)
     
     // Name - cleaner typography
     nameLabel = new QLabel(info.filename, this);
-    nameLabel->setStyleSheet(R"(
+    nameLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 15px;
-            font-weight: 600;
-            color: #E2E8F0;
+            font-size: %1px;
+            font-weight: %2;
+            color: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_MD)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_SEMIBOLD)
+        .arg(DesignTokens::Colors::TEXT_BODY));
     layout->addWidget(nameLabel);
-    
+
     layout->addStretch();
-    
+
     // Date - subtle styling
     QDateTime dt = QDateTime::fromMSecsSinceEpoch(info.updatedAt);
     QString dateStr = dt.toString("yyyy-MM-dd HH:mm");
     dateLabel = new QLabel(dateStr, this);
-    dateLabel->setStyleSheet(R"(
+    dateLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 12px;
-            color: #64748B;
+            font-size: %1px;
+            color: %2;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_SM)
+        .arg(DesignTokens::Colors::TEXT_SUBTLE));
     layout->addWidget(dateLabel);
     
     setMinimumHeight(64);
@@ -117,21 +124,27 @@ void KeyfileCard::mousePressEvent(QMouseEvent *event)
 void KeyfileCard::updateStyle()
 {
     if (isHovered) {
-        setStyleSheet(R"(
+        setStyleSheet(QString(R"(
             KeyfileCard {
-                background-color: #1E293B;
-                border: 1px solid #3B82F6;
-                border-radius: 10px;
+                background-color: %1;
+                border: 1px solid %2;
+                border-radius: %3px;
             }
-        )");
+        )")
+            .arg(DesignTokens::Colors::BG_SECONDARY)
+            .arg(DesignTokens::Colors::BRAND_PRIMARY)
+            .arg(DesignTokens::BorderRadius::RADIUS_XL));
     } else {
-        setStyleSheet(R"(
+        setStyleSheet(QString(R"(
             KeyfileCard {
-                background-color: #1E293B;
-                border: 1px solid #334155;
-                border-radius: 10px;
+                background-color: %1;
+                border: 1px solid %2;
+                border-radius: %3px;
             }
-        )");
+        )")
+            .arg(DesignTokens::Colors::BG_SECONDARY)
+            .arg(DesignTokens::Colors::BORDER_DEFAULT)
+            .arg(DesignTokens::BorderRadius::RADIUS_XL));
     }
 }
 
@@ -157,69 +170,39 @@ void WelcomeScreen::setupUI()
     mainLayout->setSpacing(24);
 
     // Title section - cleaner design
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 36px;
-            font-weight: bold;
-            color: #F1F5F9;
-            border: none;
-        }
-    )");
+    titleLabel->setStyleSheet(StyleHelper::titleLabel());
     titleLabel->setAlignment(Qt::AlignCenter);
 
-    subtitleLabel->setStyleSheet(R"(
+    subtitleLabel->setStyleSheet(QString(R"(
         QLabel {
             background: transparent;
-            font-size: 15px;
-            color: #64748B;
-            font-weight: normal;
+            font-size: %1px;
+            color: %2;
+            font-weight: %3;
             border: none;
         }
-    )");
+    )")
+        .arg(DesignTokens::Typography::FONT_SIZE_MD)
+        .arg(DesignTokens::Colors::TEXT_SUBTLE)
+        .arg(DesignTokens::Typography::FONT_WEIGHT_NORMAL));
     subtitleLabel->setAlignment(Qt::AlignCenter);
 
     mainLayout->addWidget(titleLabel);
     mainLayout->addWidget(subtitleLabel);
-    mainLayout->addSpacing(20);
+    mainLayout->addSpacing(DesignTokens::Spacing::SPACING_XL);
 
     // Keyfiles section header
     auto *listLabel = new QLabel("저장된 지갑", this);
-    listLabel->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 14px;
-            font-weight: 600;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    listLabel->setStyleSheet(StyleHelper::subheadingLabel());
     mainLayout->addWidget(listLabel);
 
     // Scroll area for keyfile cards
     scrollArea->setWidgetResizable(true);
     scrollArea->setWidget(keyfileContainer);
-    scrollArea->setStyleSheet(R"(
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        QScrollBar:vertical {
-            background: #1E293B;
-            width: 8px;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical {
-            background: #3B82F6;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical:hover {
-            background: #2563EB;
-        }
-    )");
-    
+    scrollArea->setStyleSheet(StyleHelper::scrollArea());
+
     // Set container background to transparent
-    keyfileContainer->setStyleSheet("QWidget { background-color: transparent; }");
+    keyfileContainer->setStyleSheet(StyleHelper::transparentBackground());
     
     keyfileLayout->setSpacing(16);
     keyfileLayout->setAlignment(Qt::AlignTop);
@@ -230,44 +213,13 @@ void WelcomeScreen::setupUI()
     auto *buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(16);
 
-    createButton->setMinimumHeight(48);
+    createButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_LG);
     createButton->setCursor(Qt::PointingHandCursor);
-    createButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #3B82F6;
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-        }
-        QPushButton:hover {
-            background-color: #2563EB;
-        }
-        QPushButton:pressed {
-            background-color: #1D4ED8;
-        }
-    )");
-    
-    importButton->setMinimumHeight(48);
+    createButton->setStyleSheet(StyleHelper::primaryButton());
+
+    importButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_LG);
     importButton->setCursor(Qt::PointingHandCursor);
-    importButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #1E293B;
-            color: #94A3B8;
-            font-size: 15px;
-            font-weight: 600;
-            border: 1px solid #334155;
-            border-radius: 8px;
-        }
-        QPushButton:hover {
-            background-color: #334155;
-            color: #CBD5E1;
-        }
-        QPushButton:pressed {
-            background-color: #475569;
-        }
-    )");
+    importButton->setStyleSheet(StyleHelper::secondaryButton());
 
     buttonLayout->addWidget(createButton);
     buttonLayout->addWidget(importButton);

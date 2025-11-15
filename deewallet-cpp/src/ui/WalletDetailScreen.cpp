@@ -6,6 +6,8 @@
 #include "SendTransactionDialog.h"
 #include "QRCodeDialog.h"
 #include "AddressBookDialog.h"
+#include "StyleHelper.h"
+#include "DesignTokens.h"
 #include "../chains/BitcoinAdapter.h"
 #include "../chains/EthereumAdapter.h"
 #include "../chains/TronAdapter.h"
@@ -39,92 +41,40 @@ void WalletDetailScreen::setupUI()
 
     // Top bar - cleaner layout
     auto *topBar = new QHBoxLayout();
-    
+
     auto *titleLabel = new QLabel("DEE WALLET", this);
-    titleLabel->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 24px;
-            font-weight: 700;
-            color: #F1F5F9;
-            border: none;
-        }
-    )");
+    titleLabel->setStyleSheet(StyleHelper::headingLabel());
     topBar->addWidget(titleLabel);
     topBar->addStretch();
 
     backButton->setObjectName("secondaryButton");
     backButton->setMaximumWidth(100);
-    backButton->setMinimumHeight(38);
+    backButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_SM);
+    backButton->setStyleSheet(StyleHelper::secondaryButton());
     topBar->addWidget(backButton);
 
     mainLayout->addLayout(topBar);
 
     // Refresh button - cleaner design
-    refreshButton->setMinimumHeight(44);
+    refreshButton->setMinimumHeight(DesignTokens::Sizes::BUTTON_HEIGHT_MD);
     refreshButton->setCursor(Qt::PointingHandCursor);
-    refreshButton->setStyleSheet(R"(
-        QPushButton {
-            background-color: #3B82F6;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        QPushButton:hover {
-            background-color: #2563EB;
-        }
-        QPushButton:pressed {
-            background-color: #1D4ED8;
-        }
-        QPushButton:disabled {
-            background-color: #334155;
-            color: #64748B;
-        }
-    )");
+    refreshButton->setStyleSheet(StyleHelper::primaryButton());
 
     mainLayout->addWidget(refreshButton);
 
     // Chain list title
     auto *listTitle = new QLabel("보유 자산", this);
-    listTitle->setStyleSheet(R"(
-        QLabel {
-            background: transparent;
-            font-size: 16px;
-            font-weight: 600;
-            color: #94A3B8;
-            border: none;
-        }
-    )");
+    listTitle->setStyleSheet(StyleHelper::subheadingLabel());
     mainLayout->addWidget(listTitle);
 
     // Chain list container with scroll
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setWidget(chainListContainer);
-    scrollArea->setStyleSheet(R"(
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        QScrollBar:vertical {
-            background: #1E293B;
-            width: 8px;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical {
-            background: #3B82F6;
-            border-radius: 4px;
-        }
-        QScrollBar::handle:vertical:hover {
-            background: #2563EB;
-        }
-    )");
-    
+    scrollArea->setStyleSheet(StyleHelper::scrollArea());
+
     // Set container background to transparent
-    chainListContainer->setStyleSheet("QWidget { background-color: transparent; }");
+    chainListContainer->setStyleSheet(StyleHelper::transparentBackground());
     
     chainListLayout->setSpacing(12);
     chainListLayout->setAlignment(Qt::AlignTop);
@@ -156,48 +106,37 @@ void WalletDetailScreen::setupUI()
     // Create card for each chain
     for (int i = 0; i < chains.size(); ++i) {
         auto *chainCard = new QWidget(chainListContainer);
-        chainCard->setMinimumHeight(90);
+        chainCard->setMinimumHeight(DesignTokens::Sizes::CARD_MIN_HEIGHT_MD);
         chainCard->setCursor(Qt::PointingHandCursor);
-        chainCard->setStyleSheet(R"(
-            QWidget {
-                background-color: #1E293B;
-                border: 1px solid #334155;
-                border-radius: 10px;
-            }
-            QWidget:hover {
-                background-color: #334155;
-                border: 1px solid #3B82F6;
-            }
-        )");
+        chainCard->setStyleSheet(StyleHelper::interactiveCard());
 
         auto *cardLayout = new QHBoxLayout(chainCard);
-        cardLayout->setContentsMargins(20, 16, 20, 16);
-        cardLayout->setSpacing(16);
+        cardLayout->setContentsMargins(DesignTokens::Spacing::SPACING_XL,
+                                       DesignTokens::Spacing::SPACING_LG,
+                                       DesignTokens::Spacing::SPACING_XL,
+                                       DesignTokens::Spacing::SPACING_LG);
+        cardLayout->setSpacing(DesignTokens::Spacing::SPACING_LG);
 
         // Left side: Chain info
         auto *leftLayout = new QVBoxLayout();
-        leftLayout->setSpacing(6);
+        leftLayout->setSpacing(DesignTokens::Spacing::SPACING_XS);
 
         auto *chainNameLabel = new QLabel(chains[i].name + " (" + chains[i].symbol + ")", chainCard);
-        chainNameLabel->setStyleSheet(R"(
+        chainNameLabel->setStyleSheet(QString(R"(
             QLabel {
                 background: transparent;
-                font-size: 16px;
-                font-weight: 600;
-                color: #E2E8F0;
+                font-size: %1px;
+                font-weight: %2;
+                color: %3;
                 border: none;
             }
-        )");
+        )")
+            .arg(DesignTokens::Typography::FONT_SIZE_LG)
+            .arg(DesignTokens::Typography::FONT_WEIGHT_SEMIBOLD)
+            .arg(DesignTokens::Colors::TEXT_BODY));
 
         auto *tapHintLabel = new QLabel("탭하여 주소 관리", chainCard);
-        tapHintLabel->setStyleSheet(R"(
-            QLabel {
-                background: transparent;
-                font-size: 11px;
-                color: #64748B;
-                border: none;
-            }
-        )");
+        tapHintLabel->setStyleSheet(StyleHelper::hintLabel());
 
         leftLayout->addWidget(chainNameLabel);
         leftLayout->addWidget(tapHintLabel);
@@ -210,15 +149,7 @@ void WalletDetailScreen::setupUI()
         rightLayout->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
         auto *balanceLabel = new QLabel("0.0 " + chains[i].symbol, chainCard);
-        balanceLabel->setStyleSheet(R"(
-            QLabel {
-                background: transparent;
-                font-size: 18px;
-                font-weight: 700;
-                color: #3B82F6;
-                border: none;
-            }
-        )");
+        balanceLabel->setStyleSheet(StyleHelper::balanceLabel());
         balanceLabel->setAlignment(Qt::AlignRight);
 
         rightLayout->addWidget(balanceLabel);
